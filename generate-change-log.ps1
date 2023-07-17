@@ -145,24 +145,50 @@ function Add-ChangeLog
 
 #region [Main Execution]
 
+$generateVersion = $args[0];
+$autoCommitAndPush = $args[1];
+
 $brachToCheck = "develop";
 $currentBranch = git branch --show-current;
 
-# Add empty row before all commits
-Add-ChangeLog -changeType 0;
-
-# Add new commit log
+# Generate commit changes
 $brachDiffCommits = git cherry -v $brachToCheck $currentBranch;
-foreach ($commitItem in $brachDiffCommits)
+
+If (($brachDiffCommits -ne $null -and ([Array]$brachDiffCommits).Length -gt 0) -or ($generateVersion -eq "vgen"))
 {
-	$commitHash = Get-CommitHash -commitItem $commitItem;
-	$commitComment = Get-CommitMessage -commitItem $commitItem;
-	
-	Add-ChangeLog -changeType 2 -commitHash $commitHash -commitComment $commitComment;
+	# Add empty row before all commits
+	Add-ChangeLog -changeType 0;
 }
 
-# Generate new application version
-$appVersion = .\generate-new-version.ps1;
-Add-ChangeLog -changeType 1 -version $appVersion;
+If ($brachDiffCommits -ne $null -and ([Array]$brachDiffCommits).Length -gt 0)
+{	
+	# Add new commit log
+	foreach ($commitItem in $brachDiffCommits)
+	{
+		$commitHash = Get-CommitHash -commitItem $commitItem;
+		$commitComment = Get-CommitMessage -commitItem $commitItem;
+		
+		Add-ChangeLog -changeType 2 -commitHash $commitHash -commitComment $commitComment;
+	}
+}
+
+If ($generateVersion -eq "vgen")
+{
+	# TODO: Find the best solution when to generate a new app version and append it to the changelog file
+	# Generate new application version
+	$appVersion = .\generate-new-version.ps1;
+	Add-ChangeLog -changeType 1 -version $appVersion;
+}
+
+If ($autoCommitAndPush -eq "acp") # Auto commit and push to origin
+{
+	$autoCommitMessage = "";
+	If ($generateVersion -eq "vgen") { $autoCommitMessage = "Generate new application version and changelog from commits."; }
+	Else { $autoCommitMessage = "Generate new application changelog from commits."; }
+	
+	git add --all;
+	git commit -m $autoCommitMessage;
+	git push;
+}
 
 #endregion
