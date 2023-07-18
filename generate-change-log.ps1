@@ -188,7 +188,7 @@ If ($autoCommitAndPush -eq "acp") # Auto commit and push to origin
 	
 	git add --all;
 	git commit -m $autoCommitMessage;
-	git push;
+	git push -u origin $currentBranch;
 }
 
 #endregion
