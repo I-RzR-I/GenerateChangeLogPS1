@@ -147,9 +147,25 @@ function Add-ChangeLog
 
 $generateVersion = $args[0];
 $autoCommitAndPush = $args[1];
+$autoGetLatestDevelop = $args[2];
 
 $brachToCheck = "develop";
 $currentBranch = git branch --show-current;
+
+If ($autoGetLatestDevelop -eq "pulldev")
+{
+	Write-Host "#-------------------------------------------------------------------#" -ForegroundColor DarkGreen;
+	Write-Host "#	Get the latest develop branch and commit to the current" -ForegroundColor Green;
+	Write-Host "#-------------------------------------------------------------------#" -ForegroundColor DarkGreen;
+	Write-Host "";
+	
+	# Auto get the latest 'develop' branch version and merge to the current branch
+	git checkout $brachToCheck;
+	git pull origin $brachToCheck;
+	
+	git checkout $currentBranch;
+	git merge $brachToCheck;
+}
 
 # Generate commit changes
 $brachDiffCommits = git cherry -v $brachToCheck $currentBranch;
@@ -161,7 +177,12 @@ If (($brachDiffCommits -ne $null -and ([Array]$brachDiffCommits).Length -gt 0) -
 }
 
 If ($brachDiffCommits -ne $null -and ([Array]$brachDiffCommits).Length -gt 0)
-{	
+{
+	Write-Host "#-------------------------------------------------------------------#" -ForegroundColor DarkGreen;
+	Write-Host "#	Generate changelog (code comments) of the current branch" -ForegroundColor Green;
+	Write-Host "#-------------------------------------------------------------------#" -ForegroundColor DarkGreen;
+	Write-Host "";
+	
 	# Add new commit log
 	foreach ($commitItem in $brachDiffCommits)
 	{
@@ -174,6 +195,11 @@ If ($brachDiffCommits -ne $null -and ([Array]$brachDiffCommits).Length -gt 0)
 
 If ($generateVersion -eq "vgen")
 {
+	Write-Host "#-------------------------------------------------------------------#" -ForegroundColor DarkGreen;
+	Write-Host "#	Generate new application version" -ForegroundColor Green;
+	Write-Host "#-------------------------------------------------------------------#" -ForegroundColor DarkGreen;
+	Write-Host "";
+	
 	# TODO: Find the best solution when to generate a new app version and append it to the changelog file
 	# Generate new application version
 	$appVersion = .\generate-new-version.ps1;
@@ -182,6 +208,11 @@ If ($generateVersion -eq "vgen")
 
 If ($autoCommitAndPush -eq "acp") # Auto commit and push to origin
 {
+	Write-Host "#-------------------------------------------------------------------#" -ForegroundColor DarkGreen;
+	Write-Host "#	Auto commit and push the current branch to the origin" -ForegroundColor Green;
+	Write-Host "#-------------------------------------------------------------------#" -ForegroundColor DarkGreen;
+	Write-Host "";
+	
 	$autoCommitMessage = "";
 	If ($generateVersion -eq "vgen") { $autoCommitMessage = "Generate new application version and changelog from commits."; }
 	Else { $autoCommitMessage = "Generate new application changelog from commits."; }
