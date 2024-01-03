@@ -1,3 +1,15 @@
+#How to use:
+# .\generate-change-log.ps1 -generateVersion $true -autoCommitAndPush $true -autoGetLatestDevelop $true
+Param
+(
+	[Parameter(Mandatory = $true)]
+	[bool]$generateVersion,
+	[Parameter(Mandatory = $true)]
+	[bool]$autoCommitAndPush,
+	[Parameter(Mandatory = $true)]
+	[bool]$autoGetLatestDevelop
+);
+
 #region [Get comment/id/hash]
 
 <#
@@ -145,14 +157,10 @@ function Add-ChangeLog
 
 #region [Main Execution]
 
-$generateVersion = $args[0];
-$autoCommitAndPush = $args[1];
-$autoGetLatestDevelop = $args[2];
-
 $brachToCheck = "develop";
 $currentBranch = git branch --show-current;
 
-If ($autoGetLatestDevelop -eq "pulldev")
+If ($autoGetLatestDevelop -eq $true)
 {
 	Write-Host "#-------------------------------------------------------------------#" -ForegroundColor DarkGreen;
 	Write-Host "#	Get the latest develop branch and commit to the current" -ForegroundColor Green;
@@ -170,7 +178,7 @@ If ($autoGetLatestDevelop -eq "pulldev")
 # Generate commit changes
 $brachDiffCommits = git cherry -v $brachToCheck $currentBranch;
 
-If (($brachDiffCommits -ne $null -and ([Array]$brachDiffCommits).Length -gt 0) -or ($generateVersion -eq "vgen"))
+If (($brachDiffCommits -ne $null -and ([Array]$brachDiffCommits).Length -gt 0) -or ($generateVersion -eq $true))
 {
 	# Add empty row before all commits
 	Add-ChangeLog -changeType 0;
@@ -193,7 +201,7 @@ If ($brachDiffCommits -ne $null -and ([Array]$brachDiffCommits).Length -gt 0)
 	}
 }
 
-If ($generateVersion -eq "vgen")
+If ($generateVersion -eq $true)
 {
 	Write-Host "#-------------------------------------------------------------------#" -ForegroundColor DarkGreen;
 	Write-Host "#	Generate new application version" -ForegroundColor Green;
@@ -206,7 +214,7 @@ If ($generateVersion -eq "vgen")
 	Add-ChangeLog -changeType 1 -version $appVersion;
 }
 
-If ($autoCommitAndPush -eq "acp") # Auto commit and push to origin
+If ($autoCommitAndPush -eq $true) # Auto commit and push to origin
 {
 	Write-Host "#-------------------------------------------------------------------#" -ForegroundColor DarkGreen;
 	Write-Host "#	Auto commit and push the current branch to the origin" -ForegroundColor Green;
@@ -214,7 +222,7 @@ If ($autoCommitAndPush -eq "acp") # Auto commit and push to origin
 	Write-Host "";
 	
 	$autoCommitMessage = "";
-	If ($generateVersion -eq "vgen") { $autoCommitMessage = "Generate new application version and changelog from commits."; }
+	If ($generateVersion -eq $true) { $autoCommitMessage = "Generate new application version and changelog from commits."; }
 	Else { $autoCommitMessage = "Generate new application changelog from commits."; }
 	
 	git add --all;
