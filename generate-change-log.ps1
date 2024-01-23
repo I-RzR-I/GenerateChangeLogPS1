@@ -65,7 +65,7 @@ function Get-CommitHash
 		[string]$commitItem
 	)
 	
-	return $commitItem.Substring(3, 7);
+	return $commitItem.Substring(2, 7);
 }
 
 <#
@@ -93,7 +93,7 @@ function Get-CommitId
 		[string]$commitItem
 	)
 	
-	return $commitItem.Substring(3, 40);
+	return $commitItem.Substring(2, 40);
 }
 
 #endregion
@@ -144,10 +144,15 @@ function Add-ChangeLog
 	If ($changeType -eq 0)
 	{ @("") + (Get-Content $changeLogPath) | Set-Content $changeLogPath; }
 	ElseIf ($changeType -eq 1)
-	{ @("# v$version") + (Get-Content $changeLogPath) | Set-Content $changeLogPath; }
+	{
+		$userName = git config user.name;
+		$userEmail = git config user.email;
+		@("# v$version [$userName($userEmail)]") + (Get-Content $changeLogPath) | Set-Content $changeLogPath;
+	}
 	Else
 	{
-		$commitRecord = "* [$commitHash] -> " + $commitComment;
+		$userCommit = git show -s --format='%an' $commitHash;
+		$commitRecord = "* [$commitHash]($userCommit) -> " + $commitComment;
 		
 		@($commitRecord) + (Get-Content $changeLogPath) | Set-Content $changeLogPath;
 	}
