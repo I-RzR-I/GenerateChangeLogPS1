@@ -147,12 +147,12 @@ function Add-ChangeLog
 	{
 		$userName = git config user.name;
 		$userEmail = git config user.email;
-		@("# v$version [$userName($userEmail)]") + (Get-Content $changeLogPath) | Set-Content $changeLogPath;
+		@("# v$version [$userName](mailto:$userEmail)") + (Get-Content $changeLogPath) | Set-Content $changeLogPath;
 	}
 	Else
 	{
 		$userCommit = git show -s --format='%an' $commitHash;
-		$commitRecord = "* [$commitHash]($userCommit) -> " + $commitComment;
+		$commitRecord = "* [$commitHash] ($userCommit) -> " + $commitComment;
 		
 		@($commitRecord) + (Get-Content $changeLogPath) | Set-Content $changeLogPath;
 	}
